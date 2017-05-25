@@ -764,6 +764,13 @@ void *mpp_dec_advanced_thread(void *data)
     while (1) {
         {
             AutoMutex autolock(thd_dec->mutex());
+            {
+                AutoMutex autolock_reset(thd_dec->mutex(THREAD_RESET));
+                if (dec->reset_flag) {
+                    dec->reset_flag = 0;
+                    thd_dec->signal(THREAD_RESET);
+                }
+            }
             if (MPP_THREAD_RUNNING == thd_dec->get_status()) {
                 ret = mpp_port_dequeue(input, &mpp_task);
                 if (ret || NULL == mpp_task) {
