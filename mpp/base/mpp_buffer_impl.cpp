@@ -181,9 +181,6 @@ static void buffer_group_dump_log(MppBufferGroupImpl *group)
 
 static MPP_RET deinit_buffer_no_lock(MppBufferImpl *buffer, const char *caller)
 {
-    mpp_assert(buffer->ref_count == 0);
-    mpp_assert(buffer->used == 0);
-
     list_del_init(&buffer->list_status);
     MppBufferGroupImpl *group = SEARCH_GROUP_BY_ID(buffer->group_id);
     BufferOp func = (group->mode == MPP_BUFFER_INTERNAL) ?
