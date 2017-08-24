@@ -37,6 +37,13 @@
 #define CMD_CTX_ID_ISP                  (0x00030000)
 #define CMD_ID_MASK                     (0x0000FFFF)
 
+typedef enum MppIOMode_e {
+    MPP_IO_MODE_DEFAULT                 = -1,
+    MPP_IO_MODE_SIMPLE                  = 0,
+    MPP_IO_MODE_ADVANCED                = 1,
+    MPP_IO_MODE_BUTT,
+} MppIOMode;
+
 #define MPP_ENC_OSD_PLT_WHITE           ((255<<24)|(128<<16)|(128<<8)|235)
 #define MPP_ENC_OSD_PLT_YELLOW          ((255<<24)|(146<<16)|( 16<<8 )|210)
 #define MPP_ENC_OSD_PLT_CYAN            ((255<<24)|( 16<<16 )|(166<<8)|170)
@@ -46,19 +53,19 @@
 #define MPP_ENC_OSD_PLT_BLUE            ((255<<24)|(110<<16)|(240<<8)|41)
 #define MPP_ENC_OSD_PLT_BLACK           ((255<<24)|(128<<16)|(128<<8)|16)
 
-typedef enum MppEncSeiMode_t {
+typedef enum MppEncSeiMode_e {
     MPP_ENC_SEI_MODE_DISABLE,                /* default mode, SEI writing is disabled */
     MPP_ENC_SEI_MODE_ONE_SEQ,                /* one sequence has only one SEI */
     MPP_ENC_SEI_MODE_ONE_FRAME               /* one frame may have one SEI, if SEI info has changed */
 } MppEncSeiMode;
 
-typedef enum MppEncRcMode_t {
+typedef enum MppEncRcMode_e {
     MPP_ENC_RC_MODE_VBR,
     MPP_ENC_RC_MODE_CBR,
     MPP_ENC_RC_MODE_BUTT
 } MppEncRcMode;
 
-typedef enum MppEncRcQuality_t {
+typedef enum MppEncRcQuality_e {
     MPP_ENC_RC_QUALITY_WORST,
     MPP_ENC_RC_QUALITY_WORSE,
     MPP_ENC_RC_QUALITY_MEDIUM,
@@ -78,6 +85,7 @@ typedef enum {
     MPP_SET_INTPUT_BLOCK_TIMEOUT,
     MPP_SET_OUTPUT_BLOCK,
     MPP_SET_OUTPUT_BLOCK_TIMEOUT,
+    MPP_SET_TRANSACTION_MODE,           /* Need to setup before init */
     MPP_CMD_END,
 
     MPP_CODEC_CMD_BASE                  = CMD_MODULE_CODEC,

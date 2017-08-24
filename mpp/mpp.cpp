@@ -55,6 +55,7 @@ Mpp::Mpp()
       mInputBlock(MPP_POLL_NON_BLOCK),
       mOutputBlock(MPP_POLL_NON_BLOCK),
       mOutputBlockTimeout(-1),
+      mIOMode(MPP_IO_MODE_DEFAULT),
       mThreadCodec(NULL),
       mThreadHal(NULL),
       mDec(NULL),
@@ -94,9 +95,14 @@ MPP_RET Mpp::init(MppCtxType type, MppCodingType coding)
         };
         mpp_dec_init(&mDec, &cfg);
 
-        if (mCoding != MPP_VIDEO_CodingMJPEG) {
+        if (mIOMode == MPP_IO_MODE_DEFAULT) {
+            mIOMode = (mCoding != MPP_VIDEO_CodingMJPEG) ?
+                      (MPP_IO_MODE_SIMPLE) : (MPP_IO_MODE_ADVANCED);
+        }
+
+        if (mIOMode == MPP_IO_MODE_SIMPLE) {
             mThreadCodec = new MppThread(mpp_dec_parser_thread, this, "mpp_dec_parser");
-            mThreadHal  = new MppThread(mpp_dec_hal_thread, this, "mpp_dec_hal");
+            mThreadHal = new MppThread(mpp_dec_hal_thread, this, "mpp_dec_hal");
 
             mpp_buffer_group_get_internal(&mPacketGroup, MPP_BUFFER_TYPE_ION);
             mpp_buffer_group_limit_config(mPacketGroup, 0, 3);
@@ -113,6 +119,19 @@ MPP_RET Mpp::init(MppCtxType type, MppCodingType coding)
             mpp_task_queue_setup(mInputTaskQueue, 1);
             mpp_task_queue_setup(mOutputTaskQueue, 1);
         }
+
+        mInputPort  = mpp_task_queue_get_port(mInputTaskQueue,  MPP_PORT_INPUT);
+        mOutputPort = mpp_task_queue_get_port(mOutputTaskQueue, MPP_PORT_OUTPUT);
+
+        if (mFrames && mPackets && (mDec) && mThreadCodec) {
+            if ((mIOMode == MPP_IO_MODE_SIMPLE && mThreadHal && mPacketGroup) ||
+                (mIOMode == MPP_IO_MODE_ADVANCED)) {
+                mThreadCodec->start();
+                if (mThreadHal)
+                    mThreadHal->start();
+                mInitDone = 1;
+            }
+        }
     } break;
     case MPP_CTX_ENC : {
         mFrames     = new mpp_list((node_destructor)NULL);
@@ -120,6 +139,8 @@ MPP_RET Mpp::init(MppCtxType type, MppCodingType coding)
         mTasks      = new mpp_list((node_destructor)NULL);
 
         mpp_enc_init(&mEnc, coding);
+
+        mIOMode = MPP_IO_MODE_ADVANCED;
         mThreadCodec = new MppThread(mpp_enc_control_thread, this, "mpp_enc_ctrl");
         //mThreadHal  = new MppThread(mpp_enc_hal_thread, this, "mpp_enc_hal");
 
@@ -130,37 +151,22 @@ MPP_RET Mpp::init(MppCtxType type, MppCodingType coding)
         mpp_task_queue_init(&mOutputTaskQueue);
         mpp_task_queue_setup(mInputTaskQueue, 1);
         mpp_task_queue_setup(mOutputTaskQueue, 1);
+
+        mInputPort  = mpp_task_queue_get_port(mInputTaskQueue,  MPP_PORT_INPUT);
+        mOutputPort = mpp_task_queue_get_port(mOutputTaskQueue, MPP_PORT_OUTPUT);
+
+        if (mFrames && mPackets && (mEnc) && mThreadCodec && mPacketGroup) {
+            mThreadCodec->start();
+            //mThreadHal->start();  // TODO
+            mInitDone = 1;
+        }
     } break;
     default : {
         mpp_err("Mpp error type %d\n", mType);
     } break;
     }
 
-    mInputPort  = mpp_task_queue_get_port(mInputTaskQueue,  MPP_PORT_INPUT);
-    mOutputPort = mpp_task_queue_get_port(mOutputTaskQueue, MPP_PORT_OUTPUT);
-
-    if (mCoding == MPP_VIDEO_CodingMJPEG &&
-        mFrames && mPackets &&
-        (mDec) &&
-        mThreadCodec/* &&
-        mPacketGroup*/) {
-        mThreadCodec->start();
-        mInitDone = 1;
-    } else if (mFrames && mPackets &&
-               (mDec) &&
-               mThreadCodec && mThreadHal &&
-               mPacketGroup) {
-        mThreadCodec->start();
-        mThreadHal->start();
-        mInitDone = 1;
-    } else if (mFrames && mPackets &&
-               (mEnc) &&
-               mThreadCodec/* && mThreadHal */ &&
-               mPacketGroup) {
-        mThreadCodec->start();
-        //mThreadHal->start();  // TODO
-        mInitDone = 1;
-    } else {
+    if (!mInitDone) {
         mpp_err("error found on mpp initialization\n");
         clear();
     }
@@ -615,7 +621,7 @@ MPP_RET Mpp::reset()
     if (mType == MPP_CTX_DEC) {
         mpp_dec_reset(mDec);
 
-        if (mDec->coding != MPP_VIDEO_CodingMJPEG) {
+        if (mIOMode != MPP_IO_MODE_ADVANCED && mDec->coding != MPP_VIDEO_CodingMJPEG) {
             mThreadCodec->lock();
             mThreadCodec->signal();
             mThreadCodec->unlock();
@@ -655,6 +661,20 @@ MPP_RET Mpp::control_mpp(MpiCmd cmd, MppParam param)
     } break;
     case MPP_SET_OUTPUT_BLOCK_TIMEOUT: {
         mOutputBlockTimeout = *((RK_S64 *)param);
+    } break;
+    case MPP_SET_TRANSACTION_MODE: {
+        /*
+         * Mpp context input/output mode:
+         * -1 : default
+         *  0 : force simple mode, create simple worker thread
+         *  1 : force advanced mode, create advanced workder thread
+         */
+        MppIOMode mode = *((MppIOMode *)param);
+        if (mode > MPP_IO_MODE_BUTT || mode < MPP_IO_MODE_DEFAULT) {
+            mpp_err("invalid transaction mode %d\n", mode);
+            mode = MPP_IO_MODE_DEFAULT;
+        }
+        mIOMode = mode;
     } break;
     default : {
         ret = MPP_NOK;
