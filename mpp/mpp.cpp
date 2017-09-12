@@ -621,7 +621,7 @@ MPP_RET Mpp::reset()
     if (mType == MPP_CTX_DEC) {
         mpp_dec_reset(mDec);
 
-        if (mIOMode != MPP_IO_MODE_ADVANCED && mDec->coding != MPP_VIDEO_CodingMJPEG) {
+        if (mIOMode != MPP_IO_MODE_ADVANCED) {
             mThreadCodec->lock();
             mThreadCodec->signal();
             mThreadCodec->unlock();
@@ -767,7 +767,7 @@ MPP_RET Mpp::control_dec(MpiCmd cmd, MppParam param)
     } break;
     case MPP_DEC_GET_FREE_PACKET_SLOT_COUNT: {
         *((RK_S32 *)param) = MPP_MAX_INPUT_PACKETS - mPackets->list_size();
-         ret = MPP_OK;
+        ret = MPP_OK;
     } break;
     default : {
     } break;
