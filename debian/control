@@ -29,4 +29,8 @@ Architecture: any
 Depends: ${misc:Depends}
 Description: Media Process Platform
 
+Package: librockchip-mpp-examples
+Architecture: any
+Depends: librockchip-mpp1 (= ${binary:Version}), ${misc:Depends}
+Description: Media Process Platform
 
