@@ -11,6 +11,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 if (HAVE_DRM)
     add_definitions(-DHAVE_DRM)
     set(DRM_FILES allocator/allocator_drm.c)
+    if (ARM_MIX_32_64)
+        add_definitions(-DARM_MIX_32_64)
+    endif()
 endif()
 
 set(MPP_ALLOCATOR
