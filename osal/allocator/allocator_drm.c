@@ -68,7 +68,7 @@ static inline void *drm_mmap(void *addr, size_t length, int prot, int flags,
 
 /* assume large file support exists */
 #  define drm_mmap(addr, length, prot, flags, fd, offset) \
-              mmap(addr, length, prot, flags, fd, offset)
+              mmap64(addr, length, prot, flags, fd, offset)
 
 #  define drm_munmap(addr, length) \
               munmap(addr, length)
