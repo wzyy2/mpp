@@ -1,3 +1,60 @@
+mpp (20171218-1) UNRELEASED; urgency=medium
+
+  [ Randy Li ]
+  * [hal]: [h265d]: fix the map for the performace monitor
+
+  [ timkingh.huang ]
+  * [h264e]: refactor hal_h264e_rkv.c
+
+  [ Randy Li ]
+  * [meta]: add the missing meta data
+  * [mpp/hal/vp8d]: fix the missing DCT stream register
+  * [mpp]: turn off a lots of message
+
+  [ sayon.chen ]
+  * [rkvenc]: rate control no consider sei length
+
+  [ Randy Li ]
+  * [osal]: add rk3036 platform
+  * [jpegd]: stop the future work when the parser is error
+
+  [ sliver.chen ]
+  * [test]: modify sleep time to improve the decoding effciency
+
+  [ timkingh.huang ]
+  * [jpege]: reset all registers before encoding
+
+  [ Herman Chen ]
+  * [legacy]: Fix legacy path release error
+
+  [ Randy Li ]
+  * [meta]: add the missing meta data for encoder
+  * [build]: add debian build rules
+  * [pkgconfig]: offer a sample for pkgconfig
+
+  [ sayon.chen ]
+  * [rkv_enc]: VBR case add new ratecontrol
+
+  [ Ding Wei ]
+  * [h264d]: add limit avoid dead loop
+
+  [ Herman Chen ]
+  * [script]: Update ndk link
+
+  [ Jacob Chen ]
+  * [build]: debian: update configure
+
+  [ Ding Wei ]
+  * [h264d]: fix bug: fix width and heigth for check
+  * [cmake]: Partly merged Android and Linux branch
+
+  [ Herman Chen ]
+  * [osal]: Add runtime allocator detection function
+  * [allocator]: Use auto detect on Android and Linux
+  * [mpp_buffer]: Fix mpp_buffer_test crash
+
+ -- Jacob Chen <jacob2.chen@rock-chips.com>  Mon, 18 Dec 2017 16:51:16 +0800
+
 mpp (1.4.0-1) stable; urgency=critical
 
   [ Herman Chen ]
